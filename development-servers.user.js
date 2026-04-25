@@ -59,7 +59,7 @@
                 headers: { 'Authorization': `Bearer ${API_KEY}` }
             });
             const agent = await agentRes.json();
-            const currentEnvId = agent.environment_id;
+            const currentEnvId = agent.environment_id || agent.environmentId;
 
             // 3. Create UI
             const container = document.createElement('div');
@@ -68,7 +68,6 @@
             container.style = 'display:flex; align-items:center; gap:8px; margin-right:10px; padding:4px 10px; background:rgba(30, 30, 30, 0.9); backdrop-filter:blur(4px); border-radius:6px; border:1px solid #444; color:#fff; font-size:12px; z-index:9999; box-shadow: 0 2px 8px rgba(0,0,0,0.5);';
 
             const statusDot = document.createElement('div');
-            const currentEnvId = agent.environment_id || agent.environmentId;
             const currentEnv = envs.find(e => (e.connectionId || e.id) === currentEnvId);
             const online = currentEnv && isEnvOnline(currentEnv);
             statusDot.id = 'letta-env-status-dot';
