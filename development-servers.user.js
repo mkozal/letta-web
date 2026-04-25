@@ -16,10 +16,11 @@
 
     // Helper to determine if an environment is "online" based on lastHeartbeat
     function isEnvOnline(env) {
-        if (!env.lastHeartbeat) return false;
+        const lastHeartbeat = env.lastHeartbeat || env.last_heartbeat;
+        if (!lastHeartbeat) return false;
         const now = Date.now();
         // Environments are considered online if seen in the last 60 seconds
-        return (now - env.lastHeartbeat) < 60000;
+        return (now - lastHeartbeat) < 60000;
     }
 
     async function init() {
@@ -67,7 +68,8 @@
             container.style = 'display:flex; align-items:center; gap:8px; margin-right:10px; padding:4px 10px; background:rgba(30, 30, 30, 0.9); backdrop-filter:blur(4px); border-radius:6px; border:1px solid #444; color:#fff; font-size:12px; z-index:9999; box-shadow: 0 2px 8px rgba(0,0,0,0.5);';
 
             const statusDot = document.createElement('div');
-            const currentEnv = envs.find(e => e.id === currentEnvId);
+            const currentEnvId = agent.environment_id || agent.environmentId;
+            const currentEnv = envs.find(e => (e.connectionId || e.id) === currentEnvId);
             const online = currentEnv && isEnvOnline(currentEnv);
             statusDot.id = 'letta-env-status-dot';
             statusDot.style = `width:8px; height:8px; border-radius:50%; background:${online ? '#00ff00' : '#666'}; box-shadow: 0 0 5px ${online ? '#00ff00' : 'transparent'}; transition: all 0.3s ease;`;
@@ -89,11 +91,12 @@
 
             envs.forEach(env => {
                 const opt = document.createElement('option');
-                opt.value = env.id;
+                const envId = env.connectionId || env.id;
+                opt.value = envId;
                 const online = isEnvOnline(env);
                 const statusIcon = online ? '●' : '○';
-                opt.innerText = `${statusIcon} ${env.connectionName || env.name || env.id}`;
-                opt.selected = (env.id === currentEnvId);
+                opt.innerText = `${statusIcon} ${env.connectionName || env.name || envId}`;
+                opt.selected = (envId === currentEnvId);
                 opt.style.background = '#222';
                 if (online) opt.style.color = '#00ff00';
                 select.appendChild(opt);
@@ -101,7 +104,7 @@
 
             select.onchange = async () => {
                 const newEnvId = select.value || null;
-                const selectedEnv = envs.find(e => e.id === newEnvId);
+                const selectedEnv = envs.find(e => (e.connectionId || e.id) === newEnvId);
                 const newIsOnline = selectedEnv && isEnvOnline(selectedEnv);
                 
                 // Update status dot immediately for feedback
